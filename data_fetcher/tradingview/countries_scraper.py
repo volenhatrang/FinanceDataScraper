@@ -71,4 +71,3 @@ def crawler_countries():
     with open(f"{tradingview_path}/countries_with_flags.json", "w", encoding="utf-8") as f:
         f.write(json_output)
     driver.quit()
-crawler_countries()
