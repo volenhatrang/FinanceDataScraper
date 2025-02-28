@@ -1,0 +1,1 @@
+A project to collect and manage financial data from multiple sources.   
