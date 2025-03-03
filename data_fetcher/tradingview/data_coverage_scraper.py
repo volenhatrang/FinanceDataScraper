@@ -28,6 +28,62 @@ def crawler_data_coverage():
     driver.get(URL) 
     tradingview_path = os.getenv("TRADINGVIEW_DATA_PATH")
 
+
+    exchange_data = []
+    for tab_id in ["Popular"]:
+        # Start
+        tab_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, f"//button[@id='{tab_id}']"))
+        )
+        # tab_button.click()
+        driver.execute_script('arguments[0].click()', tab_button)
+        time.sleep(1)
+
+        button = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.CLASS_NAME, 'showLaptop-qJcpoITA')))
+        if button != None:
+            button.click()
+        
+        time.sleep(1)
+        # print('html >> ', table.get_attribute("outerHTML"))
+
+        exchange_elements = driver.find_elements(By.CSS_SELECTOR, "#tab-region-Popular tbody tr")
+
+        for element in exchange_elements:
+            exchange_name = ""
+            if(len(element.find_elements(By.XPATH, ".//span[@class='exchangeName-qJcpoITA']"))):
+                exchange_name = element.find_element(By.XPATH, ".//span[@class='exchangeName-qJcpoITA']").text
+                if any(ex["exchangeName"] == exchange_name for ex in exchange_data):
+                    continue
+                
+            exchange_desc_name = ""
+
+            if(len(element.find_elements(By.XPATH, ".//span[@class='exchangeDescName-qJcpoITA']"))):
+                exchange_desc_name = element.find_element(By.XPATH, ".//span[@class='exchangeDescName-qJcpoITA']").text
+                pass
+            
+            country = ""
+            if(len(element.find_elements(By.CLASS_NAME, "cell-qJcpoITA"))):
+                _country_elements = element.find_elements(By.CLASS_NAME, "cell-qJcpoITA")
+                _country_text = _country_elements[0].find_elements(By.TAG_NAME, "span")[-1].text
+                if(_country_text not in ["CURRENCY", "SPOT", "INDICES", "SWAP", "FUTURES", "FUNDAMENTAL"]):
+                    country = _country_text
+                pass
+            
+            types = [badge.text for badge in element.find_elements(By.XPATH, ".//span[@class='content-PlSmolIm']")]
+            
+            exchange_data.append({
+                "exchangeName": exchange_name,
+                "exchangeDescName": exchange_desc_name,
+                "country": country,
+                "types": types,
+                "tab": tab_id
+            })
+
+    # save to json ["Stocks& Indices", "Futures"]
+    json_output = json.dumps(exchange_data, indent=4, ensure_ascii=False)
+    with open(f"{tradingview_path}/exchanges-popular.json", "w", encoding="utf-8") as f:
+        f.write(json_output)
+
     exchange_data = []
     for tab_id in ["Stocks& Indices", "Futures"]:
         # Start
